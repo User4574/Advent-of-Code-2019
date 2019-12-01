@@ -1,0 +1,10 @@
+#!/bin/bash
+
+if [ "x$1" == "x" ]; then
+  D=$(date +%d)
+else
+  D=$1
+fi
+
+cp -r skel day$D
+sed -i "s/DAY = /DAY = ${D}/" day${D}/Makefile

@@ -1,0 +1,3 @@
+#!/usr/bin/env ruby
+
+input = $stdin.readlines.map(&:strip)
