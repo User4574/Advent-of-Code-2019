@@ -1,0 +1,15 @@
+#!/usr/bin/env ruby
+
+def fuel_required(mass)
+  fuel_queue = [mass]
+
+  loop do
+    new_fuel = (fuel_queue.last / 3) - 2
+    return (fuel_queue.sum - mass) if new_fuel <= 0
+    fuel_queue << new_fuel
+  end
+end
+
+input = $stdin.readlines.map(&:strip).map(&:to_i)
+
+puts input.map{ |x| fuel_required(x) }.sum
