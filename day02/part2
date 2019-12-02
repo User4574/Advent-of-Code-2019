@@ -1,0 +1,43 @@
+#!/usr/bin/env ruby
+
+Input = $stdin.readlines[0].strip.split(",").map(&:to_i)
+
+noun = 0
+verb = 0
+
+loop do
+  $input = Input.dup
+  $input[1] = noun
+  $input[2] = verb
+
+  $pc = 0
+
+  def handle_code
+    case $input[$pc]
+    when 1
+      $input[$input[$pc+3]] = $input[$input[$pc+1]] + $input[$input[$pc+2]]
+      return true
+    when 2
+      $input[$input[$pc+3]] = $input[$input[$pc+1]] * $input[$input[$pc+2]]
+      return true
+    when 99
+      return false
+    end
+  end
+
+  loop do
+    continue = handle_code
+    break unless continue
+    $pc += 4
+  end
+
+  break if $input[0] == 19690720
+
+  verb += 1
+  if verb == 100
+    verb = 0
+    noun += 1
+  end
+end
+
+puts (100 * noun) + verb

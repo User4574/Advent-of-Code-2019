@@ -1,0 +1,28 @@
+#!/usr/bin/env ruby
+
+$input = $stdin.readlines[0].strip.split(",").map(&:to_i)
+$pc = 0
+
+def handle_code
+  case $input[$pc]
+  when 1
+    $input[$input[$pc+3]] = $input[$input[$pc+1]] + $input[$input[$pc+2]]
+    return true
+  when 2
+    $input[$input[$pc+3]] = $input[$input[$pc+1]] * $input[$input[$pc+2]]
+    return true
+  when 99
+    return false
+  end
+end
+
+$input[1] = 12
+$input[2] = 2
+
+loop do
+  continue = handle_code
+  break unless continue
+  $pc += 4
+end
+
+puts $input[0]
