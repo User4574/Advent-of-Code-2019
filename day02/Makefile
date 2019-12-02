@@ -10,4 +10,5 @@ build: part* input
 	touch build
 
 clean:
+	docker image rm -f aoc2019day$(DAY)
 	rm -f build
