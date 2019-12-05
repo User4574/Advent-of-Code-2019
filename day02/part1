@@ -1,28 +1,52 @@
 #!/usr/bin/env ruby
 
-$input = $stdin.readlines[0].strip.split(",").map(&:to_i)
-$pc = 0
+class Machine
+  def initialize(starting_memory = [])
+    @mem = starting_memory
+    @pc = 0
+    @halt = false
+  end
 
-def handle_code
-  case $input[$pc]
-  when 1
-    $input[$input[$pc+3]] = $input[$input[$pc+1]] + $input[$input[$pc+2]]
-    return true
-  when 2
-    $input[$input[$pc+3]] = $input[$input[$pc+1]] * $input[$input[$pc+2]]
-    return true
-  when 99
-    return false
+  def mem(start = 0, len = @mem.length)
+    @mem[start...(start + len)]
+  end
+
+  def halt!
+    @halt = true
+  end
+
+  def halt?
+    @halt
+  end
+
+  def step
+    return if halt?
+    case @mem[@pc]
+    when 1
+      @mem[@mem[@pc+3]] = @mem[@mem[@pc+1]] + @mem[@mem[@pc+2]]
+      @pc += 4
+    when 2
+      @mem[@mem[@pc+3]] = @mem[@mem[@pc+1]] * @mem[@mem[@pc+2]]
+      @pc += 4
+    when 99
+      halt!
+      @pc += 1
+    end
+  end
+
+  def run
+    until halt? do
+      step
+    end
   end
 end
 
-$input[1] = 12
-$input[2] = 2
+input = $stdin.readlines[0].strip.split(",").map(&:to_i)
 
-loop do
-  continue = handle_code
-  break unless continue
-  $pc += 4
-end
+input[1] = 12
+input[2] = 2
 
-puts $input[0]
+m = Machine.new(input)
+m.run
+
+puts m.mem(0, 1)
