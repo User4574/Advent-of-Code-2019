@@ -1,0 +1,79 @@
+#!/usr/bin/env ruby
+
+class Machine
+  def initialize(starting_memory = [])
+    @mem = starting_memory
+    @pc = 0
+    @halt = false
+    @buffered_input = []
+    @buffered_output = []
+  end
+
+  def mem(start = 0, len = @mem.length)
+    @mem[start...(start + len)]
+  end
+
+  def halt!
+    @halt = true
+  end
+
+  def halt?
+    @halt
+  end
+
+  def buffer_input(x)
+    @buffered_input.push(x)
+  end
+
+  def buffered_output
+    t = @buffered_output
+    @buffered_output = []
+    t
+  end
+
+  def step
+    return if halt?
+
+    opcode = @mem[@pc] % 100
+    p3, p2, p1 = ("%03d" % (@mem[@pc] / 100)).chars.map{|c|c == "1"}
+
+    l1w = @mem[@pc + 1]
+    l1r = p1 ? l1w : @mem[l1w]
+    l2w = @mem[@pc + 2]
+    l2r = p2 ? l2w : @mem[l2w]
+    l3w = @mem[@pc + 3]
+    l3r = p3 ? l3w : @mem[l3w]
+
+    case opcode
+    when 1
+      @mem[l3w] = l1r + l2r
+      @pc += 4
+    when 2
+      @mem[l3w] = l1r * l2r
+      @pc += 4
+    when 3
+      @mem[l1w] = @buffered_input.shift
+      @pc += 2
+    when 4
+      @buffered_output.push(l1r)
+      @pc += 2
+    when 99
+      halt!
+      @pc += 1
+    end
+  end
+
+  def run
+    puts buffered_output
+    until halt? do
+      step
+      puts buffered_output unless @buffered_output.empty?
+    end
+  end
+end
+
+input = $stdin.readlines[0].strip.split(",").map(&:to_i)
+
+m = Machine.new(input)
+m.buffer_input(1)
+m.run
