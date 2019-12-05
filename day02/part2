@@ -1,40 +1,62 @@
 #!/usr/bin/env ruby
 
+class Machine
+  def initialize(starting_memory = [])
+    @mem = starting_memory
+    @pc = 0
+    @halt = false
+  end
+
+  def mem(start = 0, len = @mem.length)
+    @mem[start...(start + len)]
+  end
+
+  def halt!
+    @halt = true
+  end
+
+  def halt?
+    @halt
+  end
+
+  def step
+    return if halt?
+    case @mem[@pc]
+    when 1
+      @mem[@mem[@pc+3]] = @mem[@mem[@pc+1]] + @mem[@mem[@pc+2]]
+      @pc += 4
+    when 2
+      @mem[@mem[@pc+3]] = @mem[@mem[@pc+1]] * @mem[@mem[@pc+2]]
+      @pc += 4
+    when 99
+      halt!
+      @pc += 1
+    end
+  end
+
+  def run
+    until halt? do
+      step
+    end
+  end
+end
+
 Input = $stdin.readlines[0].strip.split(",").map(&:to_i)
 
 noun = 0
 verb = 0
 
 loop do
-  $input = Input.dup
-  $input[1] = noun
-  $input[2] = verb
+  input = Input.dup
+  input[1] = noun
+  input[2] = verb
+  m = Machine.new(input)
+  m.run
 
-  $pc = 0
-
-  def handle_code
-    case $input[$pc]
-    when 1
-      $input[$input[$pc+3]] = $input[$input[$pc+1]] + $input[$input[$pc+2]]
-      return true
-    when 2
-      $input[$input[$pc+3]] = $input[$input[$pc+1]] * $input[$input[$pc+2]]
-      return true
-    when 99
-      return false
-    end
-  end
-
-  loop do
-    continue = handle_code
-    break unless continue
-    $pc += 4
-  end
-
-  break if $input[0] == 19690720
+  break if m.mem(0, 1)[0] == 19690720
 
   verb += 1
-  if verb == 100
+  if verb == 100 then
     verb = 0
     noun += 1
   end
