@@ -1,0 +1,42 @@
+#!/usr/bin/env ruby
+
+def get_depth_to(hsh, elm, to)
+  n = 0
+  loop do
+    break if elm == to
+    n += 1
+    elm = hsh[elm]
+  end
+  n
+end
+
+def get_hier(hsh, elm)
+  hier = [elm]
+  loop do
+    break if elm == "COM"
+    elm = hsh[elm]
+    hier << elm
+  end
+  hier
+end
+
+input = $stdin.readlines.map(&:strip).map{|x|x.split(")")}
+
+objects = {}
+
+input.each do |line|
+  objects[line[1]] = line[0]
+end
+
+me_hier = get_hier(objects, "YOU")
+santa_hier = get_hier(objects, "SAN")
+
+lca = nil
+me_hier.each do |obj|
+  if santa_hier.include?(obj) then
+    lca = obj
+    break
+  end
+end
+
+puts get_depth_to(objects, "YOU", lca) + get_depth_to(objects, "SAN", lca) - 2

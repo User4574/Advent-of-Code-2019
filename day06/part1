@@ -1,0 +1,26 @@
+#!/usr/bin/env ruby
+
+def get_depth(hsh, elm)
+  n = 0
+  loop do
+    break if elm == "COM"
+    n += 1
+    elm = hsh[elm]
+  end
+  n
+end
+
+input = $stdin.readlines.map(&:strip).map{|x|x.split(")")}
+
+objects = {}
+
+input.each do |line|
+  objects[line[1]] = line[0]
+end
+
+sum = 0
+objects.each_key do |obj|
+  sum += get_depth(objects, obj)
+end
+
+puts sum
