@@ -1,0 +1,150 @@
+#!/usr/bin/env ruby
+
+class Machine
+  def initialize(starting_memory = [])
+    @mem = starting_memory
+    @pc = 0
+    @halt = false
+    @wait = false
+    @buffered_input = []
+    @buffered_output = []
+  end
+
+  def mem(start = 0, len = @mem.length)
+    @mem[start...(start + len)]
+  end
+
+  def halt!
+    @halt = true
+  end
+
+  def halt?
+    @halt
+  end
+
+  def wait!
+    @wait = true
+  end
+
+  def wait?
+    t = @wait
+    @wait = false
+    t
+  end
+
+  def buffer_input(x)
+    if x.is_a?(Array) then
+      @buffered_input += x
+    else
+      @buffered_input.push(x)
+    end
+  end
+
+  def buffered_output
+    t = @buffered_output
+    @buffered_output = []
+    t
+  end
+
+  def step
+    return if halt?
+
+    opcode = @mem[@pc] % 100
+
+    if opcode == 99 then
+      halt!
+      @pc += 1
+      return
+    end
+
+    p3, p2, p1 = ("%03d" % (@mem[@pc] / 100)).chars.map{|c|c == "1"}
+
+    l1w = @mem[@pc + 1]
+    l1r = p1 ? l1w : @mem[l1w]
+    if [1,2,5,6,7,8].include?(opcode) then
+      l2w = @mem[@pc + 2]
+      l2r = p2 ? l2w : @mem[l2w]
+    end
+    if [1,2,7,8].include?(opcode)
+      l3w = @mem[@pc + 3]
+      l3r = p3 ? l3w : @mem[l3w]
+    end
+
+    case opcode
+    when 1
+      @mem[l3w] = l1r + l2r
+      @pc += 4
+    when 2
+      @mem[l3w] = l1r * l2r
+      @pc += 4
+    when 3
+      if @buffered_input.empty? then
+        wait!
+        return
+      end
+      @mem[l1w] = @buffered_input.shift
+      @pc += 2
+    when 4
+      @buffered_output.push(l1r)
+      @pc += 2
+    when 5
+      @pc = (l1r != 0 ? l2r : @pc + 3)
+    when 6
+      @pc = (l1r == 0 ? l2r : @pc + 3)
+    when 7
+      @mem[l3w] = (l1r < l2r ? 1 : 0)
+      @pc += 4
+    when 8
+      @mem[l3w] = (l1r == l2r ? 1 : 0)
+      @pc += 4
+    end
+  end
+
+  def run
+    until halt? || wait? do
+      step
+    end
+  end
+end
+
+input = $stdin.readlines[0].strip.split(",").map(&:to_i)
+
+max = 0
+(5..9).to_a.permutation.each do |p|
+  a = Machine.new(input.dup)
+  b = Machine.new(input.dup)
+  c = Machine.new(input.dup)
+  d = Machine.new(input.dup)
+  e = Machine.new(input.dup)
+
+  a.buffer_input(p[0])
+  b.buffer_input(p[1])
+  c.buffer_input(p[2])
+  d.buffer_input(p[3])
+  e.buffer_input(p[4])
+
+  first = true
+  loop do
+    if first then
+      first = false
+      a.buffer_input(0)
+    else
+      a.buffer_input(e.buffered_output)
+    end
+    a.run
+    b.buffer_input(a.buffered_output)
+    b.run
+    c.buffer_input(b.buffered_output)
+    c.run
+    d.buffer_input(c.buffered_output)
+    d.run
+    e.buffer_input(d.buffered_output)
+    e.run
+    break if e.halt?
+  end
+
+  s = e.buffered_output.last
+  max = s if s > max
+end
+
+puts max
