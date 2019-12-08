@@ -10,7 +10,7 @@ layers = input.each_slice(W * T).to_a
 image = layers.pop
 
 layers.reverse.each do |layer|
-  layer.each_index do |i|
+  (W*T).times do |i|
     case layer[i]
     when 0
       image[i] = 0
@@ -20,4 +20,29 @@ layers.reverse.each do |layer|
   end
 end
 
-puts image.map{|p|p == 0 ? " " : "█"}.each_slice(W).map(&:join)
+image.each_slice(W).each_slice(2) do |u, l|
+  if l.nil? then
+    u.each do |p|
+      case u
+      when 0
+        print " "
+      when 1
+        print "▀"
+      end
+    end
+  else
+    W.times do |i|
+      case [u[i], l[i]]
+      when [0,0]
+        print " "
+      when [0,1]
+        print "▄"
+      when [1,0]
+        print "▀"
+      when [1,1]
+        print "█"
+      end
+    end
+  end
+  puts
+end
