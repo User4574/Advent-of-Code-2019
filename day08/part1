@@ -1,0 +1,12 @@
+#!/usr/bin/env ruby
+
+W = 25
+T = 6
+
+input = $stdin.readlines[0].strip.chars.map(&:to_i)
+
+layers = input.each_slice(W * T).to_a
+
+zeroest = layers.sort{ |a,b| a.count(0) <=> b.count(0) }.first
+
+puts zeroest.count(1) * zeroest.count(2)
