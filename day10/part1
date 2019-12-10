@@ -1,0 +1,61 @@
+#!/usr/bin/env ruby
+
+input = $stdin.readlines.map(&:strip).map(&:chars)
+              .map{ |l| l.map{ |c| c == "#" } }
+
+H = input.length
+W = input[0].length
+
+def flip_x(arr)
+  arr.map do |x,y|
+    [-x, y]
+  end
+end
+
+def flip_y(arr)
+  arr.map do |x,y|
+    [x, -y]
+  end
+end
+
+def count(grid, x, y, angles)
+  c = 0
+  angles.each do |dx, dy|
+    tx = x
+    ty = y
+    loop do
+      tx += dx
+      ty += dy
+      break if tx < 0 || tx >= W
+      break if ty < 0 || ty >= H
+      if grid[ty][tx] then
+        c += 1
+        break
+      end
+    end
+  end
+  c
+end
+
+angles = []
+(0...W).each do |x|
+  (0...H).each do |y|
+    angles << [x, y] if x.gcd(y) == 1
+  end
+end
+
+angles += flip_x(angles)
+angles += flip_y(angles)
+angles.uniq!
+
+maxcount = 0
+(0...H).each do |y|
+  (0...W).each do |x|
+    if input[y][x] then
+      c = count(input, x, y, angles)
+      maxcount = c if c > maxcount
+    end
+  end
+end
+
+puts maxcount
