@@ -4,7 +4,7 @@ p. This is an assembler and disassembler pair for the intcode vm.
 
 h2. Assembler
 
-p. East instruction, directive, or label should appear on a line by itself.
+p. Each instruction, directive, or label should appear on a line by itself.
 
 h3. Usage
 
@@ -27,11 +27,7 @@ p. Optionally, commas may be used to separate arguments.
 
 h3. Labels
 
-p. Specify a label with:
-
-bc. label:
-
-p. then use it in the assembly. Sigilising it is valid, immediate @label@, positional <code>@label</code>, or relative @&label@. The merits of doing so in some cases are... Hmm.
+p. Specify a label with @label:@, then use it in the assembly. Sigilising it is valid, immediate @label@, positional <code>@label</code>, or relative @&label@. The merits of doing so in some cases are... Hmm.
 
 h3. Directives
 
@@ -42,6 +38,10 @@ h3. Sigils
 
 - <code>@</code> := Positional argument
 - @&@ := Relative argument
+
+h3. Comments
+
+p. @;@ to end of line is a comment, and is ignored by the assembler.
 
 h2. Disassembler
 
