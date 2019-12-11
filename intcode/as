@@ -1,0 +1,155 @@
+#!/usr/bin/env ruby
+
+exit 1 if ARGV.length != 1
+
+source = ARGV.shift&.strip
+
+lines = File.readlines(source)
+
+class ProgramError < Exception ; end
+class ParameterError < ProgramError ; end
+class LabelError < ProgramError ; end
+
+class Program
+  def initialize
+    @memory = []
+    @org = 0
+    @labeldb = {}
+  end
+
+  def parse(line)
+    case line[0]
+    when "@org"
+      @org = line[1].to_i
+    when "@dat"
+      line.shift
+      line.each do |d|
+        @memory[@org] = d.to_i
+        @org += 1
+      end
+    when "add"
+      raise ParameterError, "Expected positional argument" unless line[3] =~ /\A@/
+      @memory[@org] = Program.flag_digits(line[1..3]) + 1
+      @memory[@org + 1] = Program.desigil(line[1])
+      @memory[@org + 2] = Program.desigil(line[2])
+      @memory[@org + 3] = Program.desigil(line[3])
+      @org += 4
+    when "mul"
+      raise ParameterError, "Expected positional argument" unless line[3] =~ /\A@/
+      @memory[@org] = Program.flag_digits(line[1..3]) + 2
+      @memory[@org + 1] = Program.desigil(line[1])
+      @memory[@org + 2] = Program.desigil(line[2])
+      @memory[@org + 3] = Program.desigil(line[3])
+      @org += 4
+    when "inp"
+      raise ParameterError, "Expected positional argument" unless line[1] =~ /\A@/
+      @memory[@org] = 3
+      @memory[@org + 1] = Program.desigil(line[1])
+      @org += 2
+    when "out"
+      @memory[@org] = Program.flag_digits(line[1..1]) + 4
+      @memory[@org + 1] = Program.desigil(line[1])
+      @org += 2
+    when "jnz"
+      @memory[@org] = Program.flag_digits(line[1..2]) + 5
+      @memory[@org + 1] = Program.desigil(line[1])
+      @memory[@org + 2] = Program.desigil(line[2])
+      @org += 3
+    when "jez"
+      @memory[@org] = Program.flag_digits(line[1..2]) + 6
+      @memory[@org + 1] = Program.desigil(line[1])
+      @memory[@org + 2] = Program.desigil(line[2])
+      @org += 3
+    when "tlt"
+      raise ParameterError, "Expected positional argument" unless line[3] =~ /\A@/
+      @memory[@org] = Program.flag_digits(line[1..3]) + 7
+      @memory[@org + 1] = Program.desigil(line[1])
+      @memory[@org + 2] = Program.desigil(line[2])
+      @memory[@org + 3] = Program.desigil(line[3])
+      @org += 4
+    when "teq"
+      raise ParameterError, "Expected positional argument" unless line[3] =~ /\A@/
+      @memory[@org] = Program.flag_digits(line[1..3]) + 8
+      @memory[@org + 1] = Program.desigil(line[1])
+      @memory[@org + 2] = Program.desigil(line[2])
+      @memory[@org + 3] = Program.desigil(line[3])
+      @org += 4
+    when "arb"
+      @memory[@org] = Program.flag_digits(line[1..1]) + 9
+      @memory[@org + 1] = Program.desigil(line[1])
+      @org += 2
+    when "hlt"
+      @memory[@org] = 99
+      @org += 1
+    when /(.*):/
+      @labeldb[$1] = @org
+    end
+  end
+
+  def dump
+    reify_nils
+    reify_labels
+    @memory.join(",")
+  end
+
+  private
+  def reify_nils
+    @memory.map! do |x|
+      x.nil? ? 0 : x
+    end
+  end
+
+  def reify_labels
+    @memory.map! do |x|
+      if x.is_a?(String) then
+        if @labeldb.has_key?(x) then
+          @labeldb[x]
+        else
+          raise LabelError, "Label not found"
+        end
+      else
+        x
+      end
+    end
+  end
+
+  def self.flag_digits(args)
+    sig = 0
+    until args.empty? do
+      a = args.pop
+      case a
+      when /\A@/
+      when /\A&/
+        sig += 2
+      else
+        sig += 1
+      end
+      sig *= 10
+    end
+    sig * 10
+  end
+
+  def self.desigil(str)
+    case str
+    when /\A@/
+      str[1..-1].to_i
+    when /\A&/
+      str[1..-1].to_i
+    when /\A[+-0-9]/
+      str.to_i
+    else
+      str
+    end
+  end
+end
+
+p = Program.new
+
+lines.each do |line|
+  line = line.split(";")[0].strip
+  next if line.nil? || line.empty?
+  line = line.split(/\s*[,\s]\s*/)
+  p.parse(line)
+end
+
+puts p.dump

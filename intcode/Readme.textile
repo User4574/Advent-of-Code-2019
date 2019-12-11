@@ -1,0 +1,52 @@
+h1. Intcode (dis-)assembler
+
+p. This is an assembler and disassembler pair for the intcode vm.
+
+h2. Assembler
+
+p. East instruction, directive, or label should appear on a line by itself.
+
+h3. Usage
+
+bc. $ ./as source.code
+
+h3. Instruction codes
+
+- add 1 2 3 := Add
+- mul 1 2 3 := Multiply
+- inp 1 := Input
+- out 1 := Output
+- jnz 1 2 := Jump if not zero
+- jez 1 2 := Jump if equal to zero
+- tlt 1 2 3 := Test if less than
+- teq 1 2 3 := Test if equal to
+- arb 1 := Adjust relative base
+- hlt := Halt
+
+p. Optionally, commas may be used to separate arguments.
+
+h3. Labels
+
+p. Specify a label with:
+
+bc. label:
+
+p. then use it in the assembly. Sigilising it is valid, immediate @label@, positional <code>@label</code>, or relative @&label@. The merits of doing so in some cases are... Hmm.
+
+h3. Directives
+
+- @org location := Organise the code to this location
+- @dat 1 2 3 4 ... := Insert this data literally into the bytecode
+
+h3. Sigils
+
+- <code>@</code> := Positional argument
+- @&@ := Relative argument
+
+h2. Disassembler
+
+p. Prints the location of the start of each instruction and the instruction itself using the syntax detailed above.
+
+h3. Usage
+
+bc. $ ./das byte.code
