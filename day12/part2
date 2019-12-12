@@ -1,0 +1,80 @@
+#!/usr/bin/env ruby
+
+def apply_gravity(moons)
+  ms = moons.map { |m| [m[0], m[1]] }
+  (0...ms.count).to_a.combination(2).each do |a, b|
+    case ms[a][0] <=> ms[b][0]
+    when -1
+      ms[a][1] += 1
+      ms[b][1] -= 1
+    when 1
+      ms[b][1] += 1
+      ms[a][1] -= 1
+    end
+  end
+  ms
+end
+
+def update(moons)
+  moons.map do |moon|
+    [moon[0] + moon[1], moon[1]]
+  end
+end
+
+input = $stdin.readlines.map(&:strip)
+
+moonsx = input.map do |line|
+  m = line.scan(/-?\d+/)
+  [m[0].to_i, 0]
+end
+
+moonsy = input.map do |line|
+  m = line.scan(/-?\d+/)
+  [m[1].to_i, 0]
+end
+
+moonsz = input.map do |line|
+  m = line.scan(/-?\d+/)
+  [m[2].to_i, 0]
+end
+
+xs = [moonsx.dup]
+loop do
+  moonsx = apply_gravity(moonsx)
+  moonsx = update(moonsx)
+  if xs.include?(moonsx) then
+    break
+  else
+    xs << moonsx.dup
+  end
+end
+xintro = xs.index(moonsx)
+xlen = xs.count - xintro
+
+ys = [moonsy.dup]
+loop do
+  moonsy = apply_gravity(moonsy)
+  moonsy = update(moonsy)
+  if ys.include?(moonsy) then
+    break
+  else
+    ys << moonsy.dup
+  end
+end
+yintro = ys.index(moonsy)
+ylen = ys.count - yintro
+
+zs = [moonsz.dup]
+loop do
+  moonsz = apply_gravity(moonsz)
+  moonsz = update(moonsz)
+  if zs.include?(moonsz) then
+    break
+  else
+    zs << moonsz.dup
+  end
+end
+zintro = zs.index(moonsz)
+zlen = zs.count - zintro
+
+puts [xintro, yintro, zintro].max + [xlen, ylen, zlen].reduce(1, :lcm)
