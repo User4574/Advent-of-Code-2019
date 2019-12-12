@@ -38,31 +38,43 @@ moonsz = input.map do |line|
   [m[2].to_i, 0]
 end
 
-initx = moonsx.map { |m| [m[0], m[1]] }
-xlen = 0
+xs = [moonsx.dup]
 loop do
   moonsx = apply_gravity(moonsx)
   moonsx = update(moonsx)
-  xlen += 1
-  break if initx == moonsx
+  if xs.include?(moonsx) then
+    break
+  else
+    xs << moonsx.dup
+  end
 end
+xintro = xs.index(moonsx)
+xlen = xs.count - xintro
 
-inity = moonsy.map { |m| [m[0], m[1]] }
-ylen = 0
+ys = [moonsy.dup]
 loop do
   moonsy = apply_gravity(moonsy)
   moonsy = update(moonsy)
-  ylen += 1
-  break if inity == moonsy
+  if ys.include?(moonsy) then
+    break
+  else
+    ys << moonsy.dup
+  end
 end
+yintro = ys.index(moonsy)
+ylen = ys.count - yintro
 
-initz = moonsz.map { |m| [m[0], m[1]] }
-zlen = 0
+zs = [moonsz.dup]
 loop do
   moonsz = apply_gravity(moonsz)
   moonsz = update(moonsz)
-  zlen += 1
-  break if initz == moonsz
+  if zs.include?(moonsz) then
+    break
+  else
+    zs << moonsz.dup
+  end
 end
+zintro = zs.index(moonsz)
+zlen = zs.count - zintro
 
-puts [xlen, ylen, zlen].reduce(1, :lcm)
+puts [xintro, yintro, zintro].max + [xlen, ylen, zlen].reduce(1, :lcm)
