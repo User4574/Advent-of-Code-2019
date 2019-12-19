@@ -1,0 +1,147 @@
+#!/usr/bin/env ruby
+
+class Machine
+  def initialize(starting_memory = [])
+    @mem = starting_memory
+    @pc = 0
+    @halt = false
+    @buffered_input = []
+    @buffered_output = []
+    @relative_base = 0
+  end
+
+  def mem(start = 0, len = @mem.length)
+    @mem[start...(start + len)]
+  end
+
+  def halt!
+    @halt = true
+  end
+
+  def halt?
+    @halt
+  end
+
+  def buffer_input(x)
+    if x.is_a?(Array) then
+      @buffered_input += x
+    else
+      @buffered_input.push(x)
+    end
+  end
+
+  def buffered_output(flush = false)
+    t = @buffered_output
+    @buffered_output = [] if flush
+    t
+  end
+
+  def step
+    return if halt?
+
+    opcode = @mem[@pc] % 100
+
+    if opcode == 99 then
+      halt!
+      @pc += 1
+      return
+    end
+
+    p3, p2, p1 = ("%03d" % (@mem[@pc] / 100)).chars
+
+    l1w, l1r = get(p1, 1)
+    l2w, l2r = get(p2, 2) if [1,2,5,6,7,8].include?(opcode)
+    l3w, l3r = get(p3, 3) if [1,2,7,8].include?(opcode)
+
+    case opcode
+    when 1
+      @mem[l3w] = l1r + l2r
+      @pc += 4
+    when 2
+      @mem[l3w] = l1r * l2r
+      @pc += 4
+    when 3
+      @mem[l1w] = @buffered_input.shift
+      @pc += 2
+    when 4
+      @buffered_output.push(l1r)
+      @pc += 2
+    when 5
+      @pc = (l1r != 0 ? l2r : @pc + 3)
+    when 6
+      @pc = (l1r == 0 ? l2r : @pc + 3)
+    when 7
+      @mem[l3w] = (l1r < l2r ? 1 : 0)
+      @pc += 4
+    when 8
+      @mem[l3w] = (l1r == l2r ? 1 : 0)
+      @pc += 4
+    when 9
+      @relative_base += l1r
+      @pc += 2
+    end
+  end
+
+  def run
+    until halt? do
+      step
+    end
+  end
+
+  private
+
+  def get(p, a)
+    w = case p
+        when "0"
+          @mem[@pc + a]
+        when "2"
+          @relative_base + @mem[@pc + a]
+        end
+    r = case p
+        when "0"
+          @mem[@mem[@pc + a]]
+        when "1"
+          @mem[@pc + a]
+        when "2"
+          @mem[@relative_base + @mem[@pc + a]]
+        end
+    [w, r || 0]
+  end
+end
+
+input = $stdin.readlines[0].strip.split(",").map(&:to_i)
+
+m = Machine.new(input)
+m.run
+grid = m.buffered_output.map(&:chr).join.lines.map(&:strip).map(&:chars).reject(&:empty?)
+scaffs = []
+
+grid.length.times do |r|
+  grid[0].length.times do |c|
+    scaffs << [c, r] unless grid[r][c] == "."
+  end
+end
+
+def count_vert(x, y, s)
+  c = 0
+  c += 1 if s.include?([x, y-1])
+  c += 1 if s.include?([x, y+1])
+  c
+end
+
+def count_horz(x, y, s)
+  c = 0
+  c += 1 if s.include?([x-1, y])
+  c += 1 if s.include?([x+1, y])
+  c
+end
+
+def intersection?(x, y, s)
+  cv = count_vert(x, y, s)
+  ch = count_horz(x, y, s)
+  [[1, 2], [2, 1], [2, 2]].include?([cv, ch])
+end
+
+inters = scaffs.select { |x, y| intersection?(x, y, scaffs) }
+
+puts inters.map{ |a,b| a * b }.sum
