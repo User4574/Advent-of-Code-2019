@@ -1,0 +1,25 @@
+#!/usr/bin/env ruby
+
+BASE = [0, 1, 0, -1]
+
+input = $stdin.readlines[0].strip.chars.map(&:to_i)
+
+def get_base(n = 1, l = 0)
+  rbase = BASE.map { |b|
+    [b] * n
+  }.flatten
+  t = ((l + 1) / rbase.length) + 1
+  (rbase * t)[1..l]
+end
+
+l = input.length
+100.times do
+  newinput = []
+  l.times do |i|
+    newinput[i] = input.zip(get_base(i+1, l))
+                        .map{|a, b| a * b}.sum.abs % 10
+  end
+  input = newinput
+end
+
+puts input.join[0...8]
